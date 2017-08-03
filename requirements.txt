@@ -4,3 +4,4 @@ sphinx>=1.4.5
 urllib3
 socketIO_client
 pynacl
+requests

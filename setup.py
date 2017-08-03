@@ -24,7 +24,8 @@ setup(
         'sphinx>=1.4.5',
         'urllib3',
         'socketIO_client',
-        'pynacl'
+        'pynacl',
+        'requests'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
