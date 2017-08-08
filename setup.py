@@ -25,7 +25,11 @@ setup(
         'urllib3',
         'socketIO_client',
         'pynacl',
-        'requests'
+        'requests',
+        'websocket-client',
+        'easydict',
+        'sinon',
+        'freezegun'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

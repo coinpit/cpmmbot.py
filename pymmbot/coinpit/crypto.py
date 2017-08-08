@@ -13,6 +13,7 @@ def get_auth(user_id, name, secret, nonce, method, uri, body=None):
                 print('invalid body. json or string are valid body type')
     request_string = '{"method":"' + method + '","uri":"' + uri + (
         '",' if (body is None) else '","body":' + body + ',') + '"nonce":' + nonce + '}'
+    print("message", request_string)
     raw_signed = crypto_sign(request_string.encode(), bytes.fromhex(secret))
     signature = Base64Encoder.encode(raw_signed[:crypto_sign_BYTES])
     return 'SIGN ' + user_id + "." + name + ':' + signature.decode()

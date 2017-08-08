@@ -5,3 +5,8 @@ urllib3
 socketIO_client
 pynacl
 requests
+websocket-client
+easydict
+sinon
+freezegun
+future

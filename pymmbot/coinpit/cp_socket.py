@@ -1,8 +1,10 @@
 import _thread
-from pymmbot.coinpit import crypto
-from socketIO_client import SocketIO
 from urllib.parse import urlparse
-import common_util
+
+from socketIO_client import SocketIO
+
+from pymmbot.coinpit import crypto
+from utils import common_util
 
 
 class CP_Socket(object):
