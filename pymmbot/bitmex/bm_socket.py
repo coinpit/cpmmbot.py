@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 import websocket
 
 from pymmbot.bitmex.auth import APIKeyAuth
-from settings import settings
+from pymmbot.settings import settings
 
 
 class BM_Socket(object):

@@ -1,6 +1,6 @@
 from  easydict import EasyDict as edict
-import bot_settings as baseSettings
-import user_settings.user as userSettings
+import pymmbot.bot_settings as baseSettings
+import pymmbot.user_settings.user as userSettings
 from os import path
 import logging.config
 import sys

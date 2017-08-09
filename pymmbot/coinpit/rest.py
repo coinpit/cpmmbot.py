@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 import requests
 
 from pymmbot.coinpit import crypto
-from utils import common_util
+from pymmbot.utils import common_util
 
 
 class Rest(object):

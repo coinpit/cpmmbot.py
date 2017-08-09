@@ -2,7 +2,7 @@ import json
 import logging
 from pymmbot.bitmex import bm_socket, bitmex
 from pymmbot.coinpit import account, cp_socket, rest
-from settings import settings
+from pymmbot.settings import settings
 from easydict import EasyDict as edict
 from pymmbot.utils import common_util
 import math

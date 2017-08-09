@@ -1,7 +1,7 @@
 import base64
 import uuid
 import requests
-from settings import settings
+from pymmbot.settings import settings
 from pymmbot.bitmex.auth import APIKeyAuthWithExpires
 
 

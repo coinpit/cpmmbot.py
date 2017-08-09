@@ -2,7 +2,7 @@ from requests.auth import AuthBase
 import time
 import hashlib
 import hmac
-from settings import settings
+from pymmbot.settings import settings
 # from future.builtins import bytes
 # from future.standard_library import hooks
 # with hooks():  # Python 2/3 compat
