@@ -1,5 +1,0 @@
-create a file names user.py and put user credentials in that file. example:
-
-COINPIT_API_KEY= < copy content of api key downloaded when api key was generated.>
-BITMEX_API_KEY = <bitmex api key>
-BITMEX_API_SECRET = <bitmex api secret>

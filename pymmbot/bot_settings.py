@@ -7,7 +7,6 @@ LOG_LEVEL = logging.INFO
 COINPIT_URL = "http://localhost:9000/api/v1"
 BITMEX_URL = "https://testnet.bitmex.com/api/v1/"
 
-COINPIT_API_KEY = None
 COINPIT_SYMBOL = 'BTCUSDW'
 INTEREST_RATE = 0.06
 COINPIT_TICK_SIZE = 1
@@ -15,66 +14,17 @@ COINPIT_QTY = 100
 COINPIT_BITMEX_RATIO = 100
 QUANTITY_MULTIPLIER = 5
 
-BITMEX_API_KEY = None
-BITMEX_API_SECRET = None
-
 # BITMEX_TOPICS=["instrument", "quote", "trade", "orderBook10", "order", "execution", "position" ]
 BITMEX_TOPICS = ["instrument", "orderBook10", "order", "execution", "position"]
 BITMEX_SYMBOL = 'XBTU17'
 BITMEX_TRAILING_PEG = 2
 
-
-
-
-#
-# # Instrument to market make.
-# SYMBOL = "XBTP14"
-#
-# # If true, don't set up any orders, just say what we would do
-# # DRY_RUN = True
-# DRY_RUN = False
-#
-# # How often to re-check the orderbook and replace orders
-# LOOP_INTERVAL = 60
-#
-# # Wait times between orders / errors
-# API_REST_INTERVAL = 1
-# API_ERROR_INTERVAL = 10
-#
-# # If we're doing a dry run, use these numbers for BTC balances
-# DRY_BTC = 50
-#
-# # How many pairs of buy/sell orders to keep open
-# ORDER_PAIRS = 6
-#
-# # How many contracts each order should contain
-# ORDER_SIZE = 500
-#
-# # Distance between successive orders, as a percentage (example: 0.005 for 0.5%)
-# INTERVAL = 0.005
-#
-# # Minimum spread to maintain, in percent, between asks & bids
-# MIN_SPREAD = 0.01
-#
-# # If True, market-maker will place orders just inside the existing spread and work the interval % outwards,
-# # rather than starting in the middle and killing potentially profitable spreads.
-# MAINTAIN_SPREADS = True
-#
-# # Each order is designed to be (INTERVAL*n)% away from the spread.
-# # If the spread changes and the order has moved outside its bound defined as
-# # (INTERVAL*n) - RELIST_INTERVAL < current_spread < (INTERVAL*n) + RELIST+INTERVAL
-# # it will be resubmitted.
-# # 0.01 = 1%
-# RELIST_INTERVAL = 0.01
-#
-# # To uniquely identify orders placed by this bot, the bot sends a ClOrdID (Client order ID) that is attached
-# # to each order so its source can be identified. This keeps the market maker from cancelling orders that are
-# # manually placed, or orders placed by another bot.
-# #
-# # If you are running multiple bots on the same symbol, give them unique ORDERID_PREFIXes - otherwise they will
-# # cancel each others' orders.
-# # Max length is 13 characters.
-# ORDERID_PREFIX = "mm_bitmex_"
-#
-# # If any of these files (and this file) changes, reload the bot.
-# WATCHED_FILES = [join("market_maker", f) for f in ["market_maker.py", "bitmex.py", __file__]]
+# copy api-key downloaded from coinpit. provide path.
+COINPIT_API_FILE = 'ignore/moVB8e8oWX1oKjaaesdimAGqJHxjih8kjU-c274ee8154f6b7ae.json'
+# save bitmex api key file as json. example
+# {
+#   "ID": "Ag-_DuBvWrO8IK-6FnGhldzR",
+#   "Secret": "_Dss0iITNH5-4QlCNYxqXQ7kA2ngSmhKX4tlRBdn4mmsR3_A"
+# }
+# provide path for the bitmex api key file.
+BITMEX_API_FILE = 'ignore/bitmex_key.json'
