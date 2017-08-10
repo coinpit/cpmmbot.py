@@ -3,6 +3,6 @@ from pymmbot import mmbot
 from pymmbot.utils import common_util
 
 bot = mmbot.MMBot()
-bot.connect_coinpit()
-bot.connect_bitmex()
+bot.connect()
+# bot.initiate()
 common_util.loop()

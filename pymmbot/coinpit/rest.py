@@ -5,14 +5,16 @@ import requests
 
 from pymmbot.coinpit import crypto
 from pymmbot.utils import common_util
+from pymmbot.settings import settings
+from easydict import EasyDict as edict
 
 
 class Rest(object):
-    def __init__(self, base_url, account=None):
-        self.base_url = base_url
-        parsed_url = urlparse(base_url)
+    def __init__(self):
+        self.base_url = settings.COINPIT_URL
+        parsed_url = urlparse(self.base_url)
         self.host = parsed_url.hostname
-        self.account = account
+        self.account = edict(settings.COINPIT_API_KEY)
         self.methods = {
             'GET'    : requests.get,
             'POST'   : requests.post,

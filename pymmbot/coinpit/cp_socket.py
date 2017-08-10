@@ -5,21 +5,22 @@ from socketIO_client import SocketIO
 
 from pymmbot.coinpit import crypto
 from pymmbot.utils import common_util
-
+from pymmbot.settings import settings
+from easydict import EasyDict as edict
 
 class CP_Socket(object):
     def __init__(self):
         self.coinpit_socket = None
         self.account = None
 
-    def connect(self, url, account=None):
-        assert (url is not None), "provide server url"
+    def connect(self):
+        url = settings.COINPIT_URL
         parsed_url = urlparse(url)
         host = ('https://' if parsed_url.scheme == 'https' else '') + parsed_url.hostname
         port = parsed_url.port
         self.coinpit_socket = SocketIO(host, port)
         _thread.start_new_thread(self.coinpit_socket.wait, ())
-        self.account = account
+        self.account = edict(settings.COINPIT_API_KEY)
         self.register()
 
     @staticmethod

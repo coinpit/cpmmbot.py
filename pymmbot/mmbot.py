@@ -1,7 +1,6 @@
-import json
 import logging
-from pymmbot.bitmex import bm_socket, bitmex
-from pymmbot.coinpit import account, cp_socket, rest
+from pymmbot.bitmex import bitmex
+from pymmbot.coinpit import coinpit
 from pymmbot.settings import settings
 from easydict import EasyDict as edict
 from pymmbot.utils import common_util
@@ -19,170 +18,61 @@ class MMBot(object):
         # log_file_path = path.join(path.dirname(path.abspath(__file__)), 'logging.conf')
         # logging.config.fileConfig(log_file_path)
         # self.log = logging.getLogger('root')
-        self.bitmex = None
+        self.bitmex = bitmex.Bitmex()
+        self.coinpit = coinpit.Coinpit()
         self.current_spread = None
         self.current_price = {'buy': None, 'sell': None}
-        self.current_index = None
-        self.coinpit_account = None
-        self.coinpit_socket = None
-        self.coinpit_rest = None
-        self.coinpit_user_details = None
-        self.coinpit_position = None
-        self.coinpit_config = {'config': None, 'instruments': None, 'alias': None}
-        self.orders = None
-        self.read_only = False
-        self.bitmex_socket = None
 
-    def connect_coinpit(self):
-        # assert (apikey is not None), 'apikey is missing.'
-        # assert (url is not None), "provide server url"
-        url = settings.COINPIT_URL
-        apikey = settings.COINPIT_API_KEY
-        self.coinpit_account = account.Account(apikey)
-        self.coinpit_rest = rest.Rest(url, self.coinpit_account)
-        self.get_account_details()
-        self.coinpit_socket = cp_socket.CP_Socket()
-        self.coinpit_socket.connect(url, self.coinpit_account)
-        self.subscribe()
-
-    def connect_bitmex(self):
-        self.bitmex = bitmex.Bitmex()
-        self.bitmex_socket = bm_socket.BM_Socket()
-        self.bitmex_socket.connect(edict({
+    def connect(self):
+        self.coinpit.connect(edict({
+            'account': self.coinpit_account_change,
+            'index'  : self.coinpit_index_change,
+            'del'    : self.coinpit_order_del
+        }))
+        self.bitmex.connect(edict({
             'orderBook10': self.on_bitmex_orderbook_change,
             'position'   : self.on_bitmex_position
         }))
 
-    def get_account_details(self):
-        response = self.coinpit_rest.get("/all/config")
-        self.coinpit_config = json.loads(response.text)
-        print('coinpit_config', response.text)
-        response = self.coinpit_rest.get("/account")
-        self.coinpit_user_details = json.loads(response.text)
+    def initiate(self):
         self.replenish_coinpit_limit_orders()
-
-    def on_config(self, data):
-        self.coinpit_config['config'] = data
-
-    def on_read_only(self, data):
-        self.read_only = data['readonly']
-        print('on_read_only', data)
-
-    def on_connect(self, data=None):
-        print('on_connect', data)
-
-    def on_disconnect(self, data=None):
-        print('on_disconnect', data)
-
-    def on_order_add(self, data):
-        print('on order add', data)
-        self.add_orders_to_cache(data['result'])
-
-    def on_order_del(self, data):
-        print('on_order_del', data)
-        self.del_orders_to_cache(data['result'])
-        self.replenish_coinpit_limit_orders()
-
-    def on_order_error(self, data):
-        print('on_order_error', data)
-
-    def on_order_update(self, data):
-        print('on_order_update', data)
-        orders = data['result']
-        self.update_orders_to_cache(orders)
-
-    def on_order_patch(self, data):
-        print('on_order_patch', data)
-        ops = data['result']
-        for op in ops:
-            if op['op'] == 'remove':
-                self.del_orders_to_cache(op['response'])
-                self.replenish_coinpit_limit_orders()
-            if op['op'] == 'add':
-                self.add_orders_to_cache(op['response'])
-            if op['op'] == 'replace':
-                self.update_orders_to_cache(op['response'])
-            if op['op'] == 'split':
-                self.add_orders_to_cache(op['response'])
-            if op['op'] == 'merge':
-                self.add_orders_to_cache(op['response']['added'])
-                self.del_orders_to_cache(op['response']['removed'])
-
-    def on_account(self, data):
-        print('on account', data)
-        if 'userDetails' in data:
-            self.coinpit_user_details = data['userDetails']
-            self.replenish_coinpit_limit_orders()
         self.hedge_on_bitmex()
 
-    def on_auth_error(self, data):
-        print('on_auth_error', data)
+    def coinpit_account_change(self):
+        self.replenish_coinpit_limit_orders()
+        self.hedge_on_bitmex()
 
-    def on_instruments(self, data):
-        self.coinpit_config['instruments'] = data
+    def coinpit_index_change(self):
+        self.replenish_coinpit_limit_orders()
 
-    def on_alias(self, data):
-        self.coinpit_config['alias'] = data
+    def coinpit_order_del(self):
+        self.replenish_coinpit_limit_orders()
 
-    def subscribe(self):
-        event_map = {
-            'config'          : self.on_config,
-            'readonly'        : self.on_read_only,
-            'reconnect'       : self.on_connect,
-            'connect_error'   : self.on_disconnect,
-            'connect_timeout' : self.on_disconnect,
-            'disconnect'      : self.on_disconnect,
-            'reconnect_error' : self.on_disconnect,
-            'reconnect_failed': self.on_disconnect,
-            'order_add'       : self.on_order_add,
-            'order_del'       : self.on_order_del,
-            'order_error'     : self.on_order_error,
-            'order_update'    : self.on_order_update,
-            'order_patch'     : self.on_order_patch,
-            'account'         : self.on_account,
-            'auth_error'      : self.on_auth_error,
-            'instruments'     : self.on_instruments,
-            'alias'           : self.on_alias,
-            'priceband'       : self.on_price_band
-        }
-        self.coinpit_socket.subscribe(event_map)
-
-    def add_orders_to_cache(self, orders):
-        for order in orders:
-            if self.coinpit_user_details is None:
-                self.coinpit_user_details = {}
-            if 'orders' not in self.coinpit_user_details:
-                self.coinpit_user_details['orders'] = {}
-            if order['instrument'] not in self.coinpit_user_details['orders']:
-                self.coinpit_user_details['orders'][order['instrument']] = {}
-            self.coinpit_user_details['orders'][order['instrument']][order['uuid']] = order
-
-    def del_orders_to_cache(self, uuids):
-        if self.coinpit_user_details is None or 'orders' not in self.coinpit_user_details:
-            self.get_account_details()
-            return
-        for instrument in self.coinpit_user_details['orders']:
-            self.remove_order_in_each_instrument(self.coinpit_user_details['orders'][instrument], uuids)
-
-    def update_orders_to_cache(self, orders):
-        for order in orders:
-            if self.coinpit_user_details is None or \
-                            'orders' not in self.coinpit_user_details or \
-                            order['instrument'] not in self.coinpit_user_details['orders'] or \
-                            order['uuid'] not in self.coinpit_user_details['orders'][order['instrument']]:
-                self.get_account_details()
+    def on_bitmex_orderbook_change(self, data):
+        try:
+            if data is None or 'bids' not in data or 'asks' not in data:
+                print("Invalid orderbook from bitmex", data)
                 return
-            else:
-                self.coinpit_user_details['orders'][order['instrument']][order['uuid']] = order
+            buy_price = self.get_price_for(
+                settings.COINPIT_QTY * settings.COINPIT_BITMEX_RATIO * settings.QUANTITY_MULTIPLIER,
+                data['bids'])
+            sell_price = self.get_price_for(
+                settings.COINPIT_QTY * settings.COINPIT_BITMEX_RATIO * settings.QUANTITY_MULTIPLIER,
+                data['asks'])
+            self.current_spread = round(sell_price - buy_price, settings.COINPIT_TICK_SIZE)
+        except Exception as e:
+            traceback.print_exc(file=sys.stdout)
+        self.replenish_coinpit_limit_orders()
 
-    def split_orders_to_cache(self, orders):
-        self.add_orders_to_cache(orders)
+    def on_bitmex_position(self, data):
+        print('bitmex position', self.bitmex.position())
+        # self.hedge_on_bitmex()
 
     def replenish_coinpit_limit_orders(self):
-        if self.current_index is None or self.current_spread is None: return
+        if self.coinpit.index() is None or self.current_spread is None: return
         premium = self.get_current_premium()
-        buy = round(self.current_index - self.current_spread / 2 + premium, settings.COINPIT_TICK_SIZE)
-        sell = round(self.current_index + self.current_spread / 2 + premium, settings.COINPIT_TICK_SIZE)
+        buy = round(self.coinpit.index() - self.current_spread / 2 + premium, settings.COINPIT_TICK_SIZE)
+        sell = round(self.coinpit.index() + self.current_spread / 2 + premium, settings.COINPIT_TICK_SIZE)
         self.send_orders_to_coinpit(buy, sell)
 
     def send_orders_to_coinpit(self, buy_price, sell_price):
@@ -197,15 +87,7 @@ class MMBot(object):
         if len(adds) > 0:
             patch.append({'op': 'add', 'value': adds})
         if len(patch) > 0:
-            self.coinpit_rest.auth_server_call('PATCH', '/order', patch)
-
-    @staticmethod
-    def remove_order_in_each_instrument(order_map, uuids):
-        if order_map is None:
-            return
-        for uuid in uuids:
-            if uuid in order_map:
-                order_map[uuid] = None
+            self.coinpit.rest.auth_server_call('PATCH', '/order', patch)
 
     def get_price_for(self, quantity, tuples):
         total = 0
@@ -220,8 +102,8 @@ class MMBot(object):
     def get_current_bid_ask(self):
         orders = {'buys': [], 'sells': []}
         instrument = self.get_coinpit_instrument()
-        for uuid in self.coinpit_user_details['orders'][instrument]:
-            order = self.coinpit_user_details['orders'][instrument][uuid]
+        for uuid in self.coinpit.user_details['orders'][instrument]:
+            order = self.coinpit.user_details['orders'][instrument][uuid]
             if order is not None and order['orderType'] == 'LMT':
                 side = orders['buys'] if order['side'] == 'buy' else orders['sells']
                 side.insert(0, order)
@@ -247,47 +129,21 @@ class MMBot(object):
                 "targetPrice": "NONE"
             })
 
-    def on_bitmex_orderbook_change(self, data):
-        try:
-            if data is None or 'bids' not in data or 'asks' not in data:
-                print("Invalid orderbook from bitmex", data)
-                return
-            buy_price = self.get_price_for(
-                settings.COINPIT_QTY * settings.COINPIT_BITMEX_RATIO * settings.QUANTITY_MULTIPLIER,
-                data['bids'])
-            sell_price = self.get_price_for(
-                settings.COINPIT_QTY * settings.COINPIT_BITMEX_RATIO * settings.QUANTITY_MULTIPLIER,
-                data['asks'])
-            self.current_spread = round(sell_price - buy_price, settings.COINPIT_TICK_SIZE)
-        except Exception as e:
-            traceback.print_exc(file=sys.stdout)
-
-        self.replenish_coinpit_limit_orders()
-
-    def on_bitmex_position(self, data):
-        print('bitmex position', self.bitmex_socket.position())
-        # self.hedge_on_bitmex()
-
     # premium = current_index * interest_rate * days_left /365
     def get_current_premium(self):
         symbol = self.get_coinpit_instrument()
-        instrument = self.coinpit_config['instruments'][symbol]
+        instrument = self.coinpit.config['instruments'][symbol]
         expiry = instrument['expiry']
         current = common_util.current_milli_time()
         diff = expiry - current
         days = math.ceil(diff / (24 * 60 * 60 * 1000))
-        premium = self.current_index * settings.INTEREST_RATE * days / 365
+        premium = self.coinpit.index() * settings.INTEREST_RATE * days / 365
         return round(premium, settings.COINPIT_TICK_SIZE)
 
-    def on_price_band(self, data):
-        print('on_price_band', data)
-        self.current_index = data[self.get_coinpit_instrument()]['price']
-        self.replenish_coinpit_limit_orders()
-
     def hedge_on_bitmex(self):
-        if self.coinpit_user_details is None: return
-        if len(self.bitmex_socket.orders()) > 0: self.bitmex.cancel_all_orders()
-        positions = self.coinpit_user_details['positions']
+        if self.coinpit.user_details is None: return
+        if len(self.bitmex.orders()) > 0: self.bitmex.cancel_all_orders()
+        positions = self.coinpit.user_details['positions']
         instrument = self.get_coinpit_instrument()
         position = None if instrument not in positions else positions[instrument]
         on_coinpit = 0 if position is None else position['quantity']
@@ -298,7 +154,7 @@ class MMBot(object):
         if self.bitmex: self.bitmex.place_order(abs(hedge_count), side, settings.BITMEX_TRAILING_PEG)
 
     def get_total_position_in_bitmex(self):
-        position = self.bitmex_socket.position()[0]
+        position = self.bitmex.position()[0]
         return position['currentQty']
 
     @staticmethod
@@ -309,5 +165,5 @@ class MMBot(object):
         return available
 
     def get_coinpit_instrument(self):
-        assert (self.coinpit_config is not None and 'alias' in self.coinpit_config), 'coinpit_config not set'
-        return self.coinpit_config['alias'][settings.COINPIT_SYMBOL]
+        assert (self.coinpit.config is not None and 'alias' in self.coinpit.config), 'coinpit_config not set'
+        return self.coinpit.config['alias'][settings.COINPIT_SYMBOL]

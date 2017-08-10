@@ -3,15 +3,18 @@ import uuid
 import requests
 from pymmbot.settings import settings
 from pymmbot.bitmex.auth import APIKeyAuthWithExpires
+from pymmbot.bitmex import bm_socket
 
 
 class Bitmex(object):
     def __init__(self):
         self.orderIDPrefix = 'mm-'
-        # Prepare HTTPS session
         self.session = requests.Session()
-        # These headers are always sent
         self.session.headers.update({'user-agent': 'liquidbot-1.0'})
+        self.socket = bm_socket.BM_Socket()
+
+    def connect(self, handlers):
+        self.socket.connect(handlers)
 
     def cancel_all_orders(self):
         self._curl_bitmex(api='order/all', verb='DELETE')
@@ -33,6 +36,12 @@ class Bitmex(object):
                     'clOrdID'       : clOrdID}
 
         return self._curl_bitmex(api=endpoint, postdict=postdict, verb="POST")
+
+    def position(self):
+        return self.socket.position()
+
+    def orders(self):
+        return self.socket.orders()
 
     def _curl_bitmex(self, api, query=None, postdict=None, timeout=3, verb=None):
         """Send a request to BitMEX Servers."""
