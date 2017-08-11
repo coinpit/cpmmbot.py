@@ -1,4 +1,5 @@
 import _thread
+import logging
 from urllib.parse import urlparse
 
 from socketIO_client import SocketIO
@@ -10,6 +11,7 @@ from easydict import EasyDict as edict
 
 class CP_Socket(object):
     def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.coinpit_socket = None
         self.account = None
 
@@ -40,14 +42,14 @@ class CP_Socket(object):
 
     def register(self):
         if self.account is None:
-            print("account is not set. call cp_socket.connect(url, account) method")
+            self.logger.info("account is not set. call cp_socket.connect(url, account) method")
             return
         self.send({"method": "GET", "uri": "/register",
                    "body"  : {"userid": self.account.userid, "publicKey": self.account.publicKey}})
 
     def unregister(self):
         if self.account is None:
-            print("account is not set. call cp_socket.connect(url, account) method")
+            self.logger.info("account is not set. call cp_socket.connect(url, account) method")
             return
         self.send({"method": "GET", "uri": "/unregister",
                    "body"  : {"userid": self.account.userid, "publicKey": self.account.publicKey}})
@@ -55,5 +57,5 @@ class CP_Socket(object):
     def subscribe(self, event_map):
         assert (self.coinpit_socket is not None), "call cp_socket.connect(url, account) to create socket connection"
         for event in event_map:
-            print('event', event)
+            self.logger.info('event %s', event)
             self.coinpit_socket.on(event, event_map[event])

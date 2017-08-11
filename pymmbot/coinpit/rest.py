@@ -1,4 +1,5 @@
 import json
+import logging
 from urllib.parse import urlparse
 
 import requests
@@ -11,6 +12,7 @@ from easydict import EasyDict as edict
 
 class Rest(object):
     def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.base_url = settings.COINPIT_URL
         parsed_url = urlparse(self.base_url)
         self.host = parsed_url.hostname
@@ -35,7 +37,8 @@ class Rest(object):
         try:
             return requests.get(self.base_url + url, headers=headers)
         except Exception as err:
-            print("Error on REST call {} \n {}".format(self.base_url + url, err))
+            self.logger.exception("Error on REST call")
+            self.logger.info("Error on REST call %s%s", self.base_url, url)
 
     def sparse_json(self, body=None):
         if body is None:
@@ -51,7 +54,8 @@ class Rest(object):
             method = self.methods[method]
             return method(url=self.base_url + url, json=body, headers=headers)
         except Exception as err:
-            print("Error on REST call {} \n {}".format(self.base_url + url, err))
+            self.logger.exception("Error on REST call")
+            self.logger.info("Error on REST call %s%s", self.base_url, url)
 
     def get_headers(self, method, url, body):
         nonce = str(common_util.current_milli_time())

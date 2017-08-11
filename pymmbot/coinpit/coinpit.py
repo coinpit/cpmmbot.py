@@ -6,6 +6,7 @@ from pymmbot.coinpit import cp_socket, rest
 
 class Coinpit(object):
     def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.socket = cp_socket.CP_Socket()
         self.handlers = None
         self.current_index = None
@@ -26,7 +27,7 @@ class Coinpit(object):
     def get_account_details(self):
         response = self.rest.get("/all/config")
         self.config = json.loads(response.text)
-        print('coinpit_config', response.text)
+        self.logger.debug('coinpit_config %s', response.text)
         response = self.rest.get("/account")
         self.user_details = json.loads(response.text)
         # self.handlers['account']()
@@ -36,33 +37,33 @@ class Coinpit(object):
 
     def on_read_only(self, data):
         self.read_only = data['readonly']
-        print('on_read_only', data)
+        self.logger.debug('on_read_only %s', data)
 
     def on_connect(self, data=None):
-        print('on_connect', data)
+        self.logger.debug('on_connect %s', data)
 
     def on_disconnect(self, data=None):
-        print('on_disconnect', data)
+        self.logger.debug('on_disconnect %s', data)
 
     def on_order_add(self, data):
-        print('on order add', data)
+        self.logger.debug('on_order_add %s', data)
         self.add_orders_to_cache(data['result'])
 
     def on_order_del(self, data):
-        print('on_order_del', data)
+        self.logger.debug('on_order_del %s', data)
         self.del_orders_to_cache(data['result'])
         self.handlers['del']()
 
     def on_order_error(self, data):
-        print('on_order_error', data)
+        self.logger.debug('on_order_error %s', data)
 
     def on_order_update(self, data):
-        print('on_order_update', data)
+        self.logger.debug('on_order_update %s', data)
         orders = data['result']
         self.update_orders_to_cache(orders)
 
     def on_order_patch(self, data):
-        print('on_order_patch', data)
+        self.logger.debug('on_order_patch %s', data)
         ops = data['result']
         for op in ops:
             if op['op'] == 'remove':
@@ -79,7 +80,7 @@ class Coinpit(object):
                 self.del_orders_to_cache(op['response']['removed'])
 
     def on_account(self, data):
-        print('on account', data)
+        self.logger.debug('on_account %s', data)
         if 'userDetails' in data:
             self.user_details = data['userDetails']
         self.handlers['account']()
@@ -87,7 +88,7 @@ class Coinpit(object):
         # self.hedge_on_bitmex()
 
     def on_auth_error(self, data):
-        print('on_auth_error', data)
+        self.logger.debug('on_auth_error %s', data)
 
     def on_instruments(self, data):
         self.config['instruments'] = data
@@ -150,7 +151,7 @@ class Coinpit(object):
         self.add_orders_to_cache(orders)
 
     def on_price_band(self, data):
-        print('on_price_band', data)
+        self.logger.debug('on_price_band %s', data)
         self.current_index = data[self.get_coinpit_instrument()]['price']
         self.handlers['index']()
 
