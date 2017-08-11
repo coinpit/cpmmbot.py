@@ -9,9 +9,10 @@ import traceback
 import sys
 import time
 
-
 # import logging.config
 # from os import path
+
+LATCH_ORDER = 'latchorder'
 
 
 class MMBot(object):
@@ -68,7 +69,7 @@ class MMBot(object):
             self.current_spread = round(sell_price - buy_price, settings.COINPIT_TICK_SIZE)
         except Exception as e:
             traceback.print_exc(file=sys.stdout)
-        # self.replenish_coinpit_limit_orders()
+            # self.replenish_coinpit_limit_orders()
 
     def on_bitmex_position(self):
         print('bitmex position', self.bitmex.position())
@@ -87,6 +88,7 @@ class MMBot(object):
         adds = []
         self.populate_replace_add_for_coinpit('buy', buy_price, orders['buys'], updates, adds)
         self.populate_replace_add_for_coinpit('sell', sell_price, orders['sells'], updates, adds)
+        self.update_latch(updates, adds)
         patch = []
         if len(updates) > 0:
             patch.append({'op': 'replace', 'value': updates})
@@ -94,6 +96,31 @@ class MMBot(object):
             patch.append({'op': 'add', 'value': adds})
         if len(patch) > 0:
             self.coinpit.rest.auth_server_call('PATCH', '/order', patch)
+
+    def update_latch(self, updates, adds):
+        if self.coinpit.index() is None: return
+        latch_diff = self.coinpit.index() * settings.COINPIT_LATCH
+        buy_price = round(self.coinpit.index() - latch_diff, settings.COINPIT_TICK_SIZE)
+        sell_price = round(self.coinpit.index() + latch_diff, settings.COINPIT_TICK_SIZE)
+        orders = self.get_latch_orders()
+        self.add_or_update_latch('buy', buy_price, updates, adds, orders)
+        self.add_or_update_latch('sell', sell_price, updates, adds, orders)
+
+    def add_or_update_latch(self, side, price, updates, adds, orders):
+        order = orders[side]
+        if order is None:
+            adds.append({
+                "instrument" : settings.COINPIT_SYMBOL,
+                "side"       : side,
+                "quantity"   : 1,
+                "price"      : price,
+                "orderType"  : "LMT",
+                "crossMargin": True,
+                "targetPrice": "NONE",
+                "clientid"   : side + LATCH_ORDER
+            })
+        elif order['price'] != price:
+            updates.append({'uuid': order['uuid'], 'price': price})
 
     def get_price_for(self, quantity, tuples):
         total = 0
@@ -110,9 +137,18 @@ class MMBot(object):
         instrument = self.get_coinpit_instrument()
         for uuid in self.coinpit.user_details['orders'][instrument]:
             order = self.coinpit.user_details['orders'][instrument][uuid]
-            if order is not None and order['orderType'] == 'LMT':
+            if order is not None and order['orderType'] == 'LMT' and is_latch_order(order) == False:
                 side = orders['buys'] if order['side'] == 'buy' else orders['sells']
                 side.insert(0, order)
+        return orders
+
+    def get_latch_orders(self):
+        orders = {'buy': None, 'sell': None}
+        instrument = self.get_coinpit_instrument()
+        for uuid in self.coinpit.user_details['orders'][instrument]:
+            order = self.coinpit.user_details['orders'][instrument][uuid]
+            if order is not None and order['orderType'] == 'LMT' and is_latch_order(order):
+                orders[order['side']] = order
         return orders
 
     def populate_replace_add_for_coinpit(self, side, price, orders, replace, add):
@@ -180,3 +216,6 @@ class MMBot(object):
             hedged = order['orderQty'] * (-1 if order['side'] == 'Buy' else 1)
         return hedge_count == hedged
 
+
+def is_latch_order(order):
+    return True if 'clientid' in order and order['clientid'].endswith(LATCH_ORDER) else False

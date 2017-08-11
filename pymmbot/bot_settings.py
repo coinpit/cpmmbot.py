@@ -10,6 +10,7 @@ COINPIT_TICK_SIZE = 1
 COINPIT_QTY = 100
 COINPIT_BITMEX_RATIO = 100
 QUANTITY_MULTIPLIER = 5
+COINPIT_LATCH = 0.2
 
 # BITMEX_TOPICS=["instrument", "quote", "trade", "orderBook10", "order", "execution", "position" ]
 BITMEX_TOPICS = ["instrument", "orderBook10", "order", "execution", "position"]

@@ -160,6 +160,7 @@ class Coinpit(object):
 
     def index(self):
         return self.current_index
+
     @staticmethod
     def remove_order_in_each_instrument(order_map, uuids):
         if order_map is None:
