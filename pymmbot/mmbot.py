@@ -7,6 +7,7 @@ from pymmbot.utils import common_util
 import math
 import traceback
 import sys
+import time
 
 
 # import logging.config
@@ -35,18 +36,23 @@ class MMBot(object):
         }))
 
     def initiate(self):
-        self.replenish_coinpit_limit_orders()
-        self.hedge_on_bitmex()
+        while True:
+            time.sleep(settings.HEDGE_INTERVAL)
+            self.replenish_coinpit_limit_orders()
+            self.hedge_on_bitmex()
 
     def coinpit_account_change(self):
-        self.replenish_coinpit_limit_orders()
-        self.hedge_on_bitmex()
+        # self.replenish_coinpit_limit_orders()
+        # self.hedge_on_bitmex()
+        pass
 
     def coinpit_index_change(self):
-        self.replenish_coinpit_limit_orders()
+        # self.replenish_coinpit_limit_orders()
+        pass
 
     def coinpit_order_del(self):
-        self.replenish_coinpit_limit_orders()
+        pass
+        # self.replenish_coinpit_limit_orders()
 
     def on_bitmex_orderbook_change(self, data):
         try:
@@ -62,9 +68,9 @@ class MMBot(object):
             self.current_spread = round(sell_price - buy_price, settings.COINPIT_TICK_SIZE)
         except Exception as e:
             traceback.print_exc(file=sys.stdout)
-        self.replenish_coinpit_limit_orders()
+        # self.replenish_coinpit_limit_orders()
 
-    def on_bitmex_position(self, data):
+    def on_bitmex_position(self):
         print('bitmex position', self.bitmex.position())
         # self.hedge_on_bitmex()
 
@@ -142,14 +148,14 @@ class MMBot(object):
 
     def hedge_on_bitmex(self):
         if self.coinpit.user_details is None: return
-        if len(self.bitmex.orders()) > 0: self.bitmex.cancel_all_orders()
         positions = self.coinpit.user_details['positions']
         instrument = self.get_coinpit_instrument()
         position = None if instrument not in positions else positions[instrument]
         on_coinpit = 0 if position is None else position['quantity']
         on_bitmex = self.get_total_position_in_bitmex()
         hedge_count = on_bitmex + on_coinpit * settings.COINPIT_BITMEX_RATIO
-        if hedge_count == 0: return
+        if self.already_hedged(hedge_count): return
+        if len(self.bitmex.orders()) > 0: self.bitmex.cancel_all_orders()
         side = 'Sell' if hedge_count > 0 else 'Buy'
         if self.bitmex: self.bitmex.place_order(abs(hedge_count), side, settings.BITMEX_TRAILING_PEG)
 
@@ -167,3 +173,10 @@ class MMBot(object):
     def get_coinpit_instrument(self):
         assert (self.coinpit.config is not None and 'alias' in self.coinpit.config), 'coinpit_config not set'
         return self.coinpit.config['alias'][settings.COINPIT_SYMBOL]
+
+    def already_hedged(self, hedge_count):
+        hedged = 0
+        for order in self.bitmex.orders():
+            hedged = order['orderQty'] * (-1 if order['side'] == 'Buy' else 1)
+        return hedge_count == hedged
+

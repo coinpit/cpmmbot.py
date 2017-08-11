@@ -120,7 +120,7 @@ class BM_Socket(object):
                 # print(message['action'], message['data'][0]['symbol'], message['data'][0]['bids'][0], len(message['data'][0]['bids']), message['data'][0]['asks'][0], len(message['data'][0]['asks']))
                 if 'orderBook10' in self.callbacks:  self.callbacks['orderBook10'](message['data'][0])
             elif message['table'] == 'position':
-                if 'position' in self.callbacks:  self.callbacks['position'](message['data'][0])
+                if 'position' in self.callbacks:  self.callbacks['position']()
             elif message['table'] == 'order':
                 print('order:', message)
 

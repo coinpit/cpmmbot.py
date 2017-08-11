@@ -18,6 +18,9 @@ QUANTITY_MULTIPLIER = 5
 BITMEX_TOPICS = ["instrument", "orderBook10", "order", "execution", "position"]
 BITMEX_SYMBOL = 'XBTU17'
 BITMEX_TRAILING_PEG = 2
+HEDGE_INTERVAL=2 #in seconds
+
+
 
 # copy api-key downloaded from coinpit. provide path.
 COINPIT_API_FILE = 'ignore/moVB8e8oWX1oKjaaesdimAGqJHxjih8kjU-c274ee8154f6b7ae.json'
@@ -28,3 +31,4 @@ COINPIT_API_FILE = 'ignore/moVB8e8oWX1oKjaaesdimAGqJHxjih8kjU-c274ee8154f6b7ae.j
 # }
 # provide path for the bitmex api key file.
 BITMEX_API_FILE = 'ignore/bitmex_key.json'
+
