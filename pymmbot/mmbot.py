@@ -19,7 +19,7 @@ class MMBot(object):
     def __init__(self):
         # log_file_path = path.join(path.dirname(path.abspath(__file__)), 'logging.conf')
         # logging.config.fileConfig(log_file_path)
-        # self.log = logging.getLogger('root')
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.bitmex = bitmex.Bitmex()
         self.coinpit = coinpit.Coinpit()
         self.current_spread = None
@@ -39,8 +39,14 @@ class MMBot(object):
     def initiate(self):
         while True:
             time.sleep(settings.HEDGE_INTERVAL)
-            self.replenish_coinpit_limit_orders()
-            self.hedge_on_bitmex()
+            try:
+                self.replenish_coinpit_limit_orders()
+            except Exception as e:
+                self.logger.exception("replenish_coinpit_limit_orders failed.")
+            try:
+                self.hedge_on_bitmex()
+            except:
+                self.logger.exception("hedge_on_bitmex failed.")
 
     def coinpit_account_change(self):
         # self.replenish_coinpit_limit_orders()
@@ -58,7 +64,7 @@ class MMBot(object):
     def on_bitmex_orderbook_change(self, data):
         try:
             if data is None or 'bids' not in data or 'asks' not in data:
-                print("Invalid orderbook from bitmex", data)
+                self.logger.debug("Invalid orderbook from bitmex %s", data)
                 return
             buy_price = self.get_price_for(
                 settings.COINPIT_QTY * settings.COINPIT_BITMEX_RATIO * settings.QUANTITY_MULTIPLIER,
@@ -68,11 +74,11 @@ class MMBot(object):
                 data['asks'])
             self.current_spread = round(sell_price - buy_price, settings.COINPIT_TICK_SIZE)
         except Exception as e:
-            traceback.print_exc(file=sys.stdout)
+            self.logger.exception('on_bitmex_orderbook_change')
             # self.replenish_coinpit_limit_orders()
 
     def on_bitmex_position(self):
-        print('bitmex position', self.bitmex.position())
+        self.logger.debug('bitmex position %s', self.bitmex.position())
         # self.hedge_on_bitmex()
 
     def replenish_coinpit_limit_orders(self):
