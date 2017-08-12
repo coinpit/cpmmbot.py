@@ -53,6 +53,6 @@ Starting bot
 
 ````bash
 
-$> ./mmbot.py -c <coinpit api-key file location> -b<bitmex api-key file location>
+$> ./mmbot.py -c /path/to/coinpit/api-key.json -b /path/to/bitmex/api-key.json
 
 ````
