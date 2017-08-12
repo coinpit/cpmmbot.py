@@ -122,7 +122,7 @@ class BM_Socket(object):
             elif message['table'] == 'position':
                 if 'position' in self.callbacks:  self.callbacks['position']()
             elif message['table'] == 'order':
-                print('order:', message)
+                self.logger.debug('order: %s', message)
 
     def on_error(self, message):
         self.logger.debug("Websocket error.")
