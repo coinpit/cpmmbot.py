@@ -29,17 +29,27 @@ class Bitmex(object):
         # Generate a unique clOrdID with our prefix so we can identify it.
         clOrdID = self.orderIDPrefix + base64.b64encode(uuid.uuid4().bytes).decode('utf-8').rstrip('=\n')
         if (side == 'Sell' and offset > 0) or (side == 'Buy' and offset < 0): offset = offset * -1
-        postdict = {"execInst"      : "LastPrice",
-                    "ordType"       : "StopMarket",
-                    "pegOffsetValue": offset,
-                    "pegPriceType"  : "TrailingStopPeg",
-                    "orderQty"      : quantity,
-                    "symbol"        : settings.BITMEX_SYMBOL,
-                    "side"          : side,
-                    "text"          : "automated trading",
-                    'clOrdID'       : clOrdID}
+        payload = self.get_market(quantity, side) if offset == 0 else self.get_trailing_stop(offset, quantity, side)
+        return self._curl_bitmex(api=endpoint, postdict=payload, verb="POST")
 
-        return self._curl_bitmex(api=endpoint, postdict=postdict, verb="POST")
+    def get_market(self, quantity, side):
+        return {
+            "ordType" : "Market",
+            "orderQty": quantity,
+            "symbol"  : settings.BITMEX_SYMBOL,
+            "side"    : side
+        }
+
+    def get_trailing_stop(self, offset, quantity, side):
+        return {
+            "execInst"      : "LastPrice",
+            "ordType"       : "StopMarket",
+            "pegOffsetValue": offset,
+            "pegPriceType"  : "TrailingStopPeg",
+            "orderQty"      : quantity,
+            "symbol"        : settings.BITMEX_SYMBOL,
+            "side"          : side
+        }
 
     def position(self):
         return self.socket.position()
@@ -60,7 +70,8 @@ class Bitmex(object):
 
         # Make the request
         try:
-            self.logger.debug("BITMEX REST: " + verb + " " + url + " " + ('' if postdict == None else json.dumps(postdict)) )
+            self.logger.debug(
+                "BITMEX REST: " + verb + " " + url + " " + ('' if postdict == None else json.dumps(postdict)))
             req = requests.Request(verb, url, data=postdict, auth=auth, params=query)
             prepped = self.session.prepare_request(req)
             response = self.session.send(prepped, timeout=timeout)

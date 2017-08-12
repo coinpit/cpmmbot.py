@@ -21,7 +21,7 @@ class BM_Socket(object):
         # We can subscribe right in the connection querystring, so let's build that.
         # Subscribe to all pertinent endpoints
         url = settings.BITMEX_URL
-        symbol = 'XBTU17'
+        symbol = settings.BITMEX_SYMBOL
         subscriptions = [sub + ':' + symbol for sub in settings.BITMEX_TOPICS]
         # subscriptions += ["margin"]
 

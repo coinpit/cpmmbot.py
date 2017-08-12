@@ -1,13 +1,13 @@
 import logging
+import math
+import time
+
+from easydict import EasyDict as edict
+
 from pymmbot.bitmex import bitmex
 from pymmbot.coinpit import coinpit
 from pymmbot.settings import settings
-from easydict import EasyDict as edict
 from pymmbot.utils import common_util
-import math
-import traceback
-import sys
-import time
 
 # import logging.config
 # from os import path
