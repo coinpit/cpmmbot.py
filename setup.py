@@ -26,7 +26,8 @@ setup(
         'websocket-client',
         'easydict',
         'sinon',
-        'freezegun'
+        'freezegun',
+        'future'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
