@@ -95,11 +95,9 @@ HEDGE_INTERVAL = 2  # in seconds
 
 ## Starting bot
 run following command from
-### Windows:
-### UNIX:
 
-````bash
+### On linux/Mac/*nix
+run `start-bot.bat`
 
-$> ./mmbot.py
-
-````
+### On Windows
+run `./start-bot.sh`
