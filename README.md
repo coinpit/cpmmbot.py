@@ -25,21 +25,19 @@ Please make sure you have api key from Bitmex and Coinpit.
 ![Alt text](img/bitmex.png?raw=true "Bitmex Api Key")
 
 
-## Download and install market maker bot
+## Download
 
-### 1. Using git:
-````bash
-$> git clone https://github.com/coinpit/cpmmbot.py
-$> cd cpmmbot.py
-$> python setup.py install
-````
+- download and unzip https://github.com/coinpit/cpmmbot.py/archive/master.zip
+- OR using git `git clone https://github.com/coinpit/cpmmbot.py`
 
-### 2. Download as zip:
+## build
+In cpmmbot.py folder:
 
-- download zip file from https://github.com/coinpit/cpmmbot.py/archive/master.zip
-- unzip in a folder
-- go to cpmmbot.py-master
-- run command `python setup.py install`
+### On linux/Mac/*nix
+run `./build.sh`
+
+### On Windows
+run `build.bat`
 
 ## Configuration:
 setup.py file will be generated under cpmmbot.py-master or cpmmbot.py folder.
