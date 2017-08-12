@@ -1,9 +1,0 @@
-{
-  "generator-python-bones": {
-    "user": "coinpit",
-    "email": "info@coinpit.io",
-    "projectID": "pymmbot",
-    "desc": "Python marketmaker bot",
-    "githubuser": "githubuser"
-  }
-}

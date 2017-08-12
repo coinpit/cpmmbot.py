@@ -1,16 +1,13 @@
+from os.path import join, isfile
+from shutil import copyfile
+
 from setuptools import setup
-
-
-def readme():
-    with open('README.rst') as f:
-        return f.read()
-
 
 setup(
     name='pymmbot',
     version='0.0.1',
     description='Python marketmaker bot',
-    long_description=readme(),
+    long_description='Coinpit market maker bot with hedging',
     url='https://github.com/githubuser/pymmbot',
     download_url='https://github.com/githubuser/pymmbot/tarball/0.0.1',
     author='coinpit',
@@ -44,3 +41,7 @@ setup(
         'Programming Language :: Python :: 3.6'
     ]
 )
+
+if not isfile('settings.py'):
+  copyfile(join('pymmbot', 'bot_settings.py'), 'settings.py')
+print("\n**** \nImportant!!!\nEdit settings.py before starting the bot.\n****")

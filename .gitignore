@@ -104,3 +104,5 @@ ENV/
 user_settings/user.py
 
 ignore
+
+/settings.py

@@ -1,6 +1,6 @@
 import json
 from  easydict import EasyDict as edict
-import pymmbot.bot_settings as baseSettings
+import settings as baseSettings
 from os import path
 import logging.config
 import argparse
