@@ -7,7 +7,25 @@ This is sample market maker bot written for Coinpit with hedging.Feel free to mo
 
 Please make sure you have api key from Bitmex and Coinpit.
 
-Download and install market maker bot
+### Coinpit API Key:
+1. Select 'MANAGE KEY' from top menu.
+1. Click 'API KEY' from drop down.
+1. Click '+ API KEY' button.
+1. An API KEY file will be generated and downloaded.
+
+![Alt text](img/coinpit.png?raw=true "Bitmex Api Key")
+
+
+### Bitmex API Key:
+
+1. Go to Account on top navigation
+1. Click on API Keys from left navigaiton
+1. select 'Order' from 'Key Permissions' and click 'Submit'.
+
+![Alt text](img/bitmex.png?raw=true "Bitmex Api Key")
+
+
+## Download and install market maker bot
 
 ### 1. Using git:
 ````bash

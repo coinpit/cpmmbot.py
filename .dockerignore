@@ -1,0 +1,8 @@
+.idea/
+ignore
+README.md
+build
+dist
+pymmbot.egg-info
+tests
+/settings.py
