@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-./pymmbot.py
+./mmbot.py
