@@ -9,7 +9,7 @@ Please make sure you have api key from Bitmex and Coinpit.
 
 ### Coinpit API Key:
 1. Select 'MANAGE KEY' from top menu.
-1. Click 'API KEY' from drop down.
+1. Click 'API KEYS' from drop down.
 1. Click '+ API KEY' button.
 1. An API KEY file will be generated and downloaded.
 
