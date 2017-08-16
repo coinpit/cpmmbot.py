@@ -24,6 +24,20 @@ Please make sure you have api key from Bitmex and Coinpit.
 
 ![Alt text](img/bitmex.png?raw=true "Bitmex Api Key")
 
+## Python
+
+Please note that this bot runs on python 3. You can find a very nice documentation [here](https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-local-programming-environment-on-ubuntu-16-04#step-2-%E2%80%94-setting-up-a-virtual-environment) to run python 3 on vertual everonment.
+
+### for Ubuntu:
+```bash
+$> sudo apt-get install -y python3-venv
+$> mkdir environments
+$> cd environments
+$> python3 -m venv my_env
+$> source my_env/bin/activate
+(my_env) sammy@sammy:-/environments$>
+
+```
 
 ## Download
 
