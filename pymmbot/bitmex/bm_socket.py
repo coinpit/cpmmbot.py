@@ -124,13 +124,13 @@ class BM_Socket(object):
             elif message['table'] == 'order':
                 self.logger.debug('order: %s', message)
 
-    def on_error(self, message):
-        self.logger.debug("Websocket error.")
+    def on_error(self, ws, message):
+        self.logger.error("Websocket error. %s", message)
 
-    def on_close(self, message):
+    def on_close(self, ws):
         self.logger.debug("Websocket Closed.")
 
-    def on_open(self, message):
+    def on_open(self, ws):
         self.logger.debug("Websocket Opened.")
 
     def error(self, err):
